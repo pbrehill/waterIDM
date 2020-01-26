@@ -49,53 +49,64 @@ check_regression <- function(df){
 
 regress_po <- function(data=fiji_cleaned, score , interaction = TRUE) {
   # Get models
-  if (interaction) {
-    po_model <- vglm(eval(parse(text = score)) ~ (sex * rainfallperc) + rural + urban + age, data = data, 
-                     family=cumulative(parallel=TRUE, reverse = TRUE))
-    gen_model <- vglm(eval(parse(text = score)) ~ (sex * rainfallperc) + rural + urban + age, data = data, 
-                      family=cumulative(parallel=FALSE, reverse = TRUE))
-  } else {
-    po_model <- vglm(eval(parse(text = score)) ~ sex + rainfallperc + rural + urban + age, data = data, 
-                     family=cumulative(parallel=TRUE, reverse = TRUE))
-    gen_model <- vglm(eval(parse(text = score)) ~ sex + rainfallperc + rural + urban + age, data = data, 
-                      family=cumulative(parallel=FALSE, reverse = TRUE))
-  }
-  
-  # Compare models
-  results <- lrtest(gen_model, po_model)
-  result <- results@Body[2, "Pr(>Chisq)"]
-  
-  # Throw warning for non-poa validate
-  if (result <= 0.05) warning(paste0("Regression on ", score, " does not meet the proportional odds assumption with a 
-                                     chisq result of ", result))
+  # if (interaction) {
+  #   po_model <- vglm(eval(parse(text = score)) ~ (sex * rainfallperc) + age, data = data, 
+  #                    family=cumulative(parallel=TRUE, reverse = TRUE))
+  #   gen_model <- vglm(eval(parse(text = score)) ~ (sex * rainfallperc) + age, data = data, 
+  #                     family=cumulative(parallel=FALSE, reverse = TRUE))
+  # } else {
+  #   po_model <- vglm(eval(parse(text = score)) ~ sex + rainfallperc + age, data = data, 
+  #                    family=cumulative(parallel=TRUE, reverse = TRUE))
+  #   gen_model <- vglm(eval(parse(text = score)) ~ sex + rainfallperc + age, data = data, 
+  #                     family=cumulative(parallel=FALSE, reverse = TRUE))
+  # }
+  # 
+  # # Compare models
+  # results <- lrtest(gen_model, po_model)
+  # result <- results@Body[2, "Pr(>Chisq)"]
+  # 
+  # # Throw warning for non-poa validate
+  # if (result <= 0.05) warning(paste0("Regression on ", score, " does not meet the proportional odds assumption with a 
+  #                                    chisq result of ", result))
   
   # Get a clm and test clm
   # clm_poa <- clm(eval(parse(text=score)) ~ (sex * rainfallperc) + rural + urban + age, data = data)
   nomtest <- nominal_test(clm_poa)
   not_validated <- na.omit(rownames(nomtest)[nomtest$`Pr(>Chi)` <= 0.05])
-  if ("rural" %in% not_validated) c(not_validated, "urban")
+  # if ("rural" %in% not_validated) c(not_validated, "urban")
   if ("sex:rainfallperc" %in% not_validated) str_replace(not_validated, "sex:rainfallperc", "sex*rainfallperc")
   
-  if (interaction) {
-    ppo_expression <- paste0("vglm(eval(parse(text = score)) ~ (sex * rainfallperc) + rural + urban + age, data = data, 
-                             family=cumulative(parallel=FALSE ~ ", paste(not_validated, collapse = " + "), ",reverse = TRUE))")
+  if (length(not_validated) == 0) {
+    if (interaction) {
+      ppo_expression <- paste0("vglm(eval(parse(text = score)) ~ (sex * rainfallperc) + age, data = data, 
+                               family=cumulative(parallel=TRUE, reverse = TRUE))")
+    } else {
+      ppo_expression <- paste0("vglm(eval(parse(text = score)) ~ sex + rainfallperc + age, data = data, 
+                               family=cumulative(parallel=TRUE, reverse = TRUE))")
+    }
   } else {
-    ppo_expression <- paste0("vglm(eval(parse(text = score)) ~ sex + rainfallperc + rural + urban + age, data = data, 
-                             family=cumulative(parallel=FALSE ~ ", paste(not_validated, collapse = " + "), ",reverse = TRUE))")
+  
+    if (interaction) {
+      ppo_expression <- paste0("vglm(eval(parse(text = score)) ~ (sex * rainfallperc) + age, data = data, 
+                               family=cumulative(parallel=FALSE ~ ", paste(not_validated, collapse = " + "), ",reverse = TRUE))")
+    } else {
+      ppo_expression <- paste0("vglm(eval(parse(text = score)) ~ sex + rainfallperc + age, data = data, 
+                               family=cumulative(parallel=FALSE ~ ", paste(not_validated, collapse = " + "), ",reverse = TRUE))")
+    }
   }
   
   
   ppo_model <- eval(parse(text=ppo_expression))
-  resultsppo <- lrtest(gen_model, ppo_model)
-  resultppo <- resultsppo@Body[2, "Pr(>Chisq)"]
-  if (resultppo <= 0.05) warning(paste0("PPO regression on ", score, " does not meet the proportional odds assumption with a 
-                   chisq result of ", resultppo))
+  # resultsppo <- lrtest(gen_model, ppo_model)
+  # resultppo <- resultsppo@Body[2, "Pr(>Chisq)"]
+  # if (resultppo <= 0.05) warning(paste0("PPO regression on ", score, " does not meet the proportional odds assumption with a 
+  #                  chisq result of ", resultppo))
   
   ls <- list()
-  ls[["po_model"]] <- po_model
-  ls[["gen_model"]] <- gen_model
+  # ls[["po_model"]] <- po_model
+  # ls[["gen_model"]] <- gen_model
   ls[["ppo_model"]] <- ppo_model
-  ls[["poa_test"]] <- result
+  # ls[["poa_test"]] <- result
   
   return(ls)
 }

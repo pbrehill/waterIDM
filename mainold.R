@@ -98,7 +98,7 @@ upplot_informal <- upset(informal, nintersects = NA, intersections = get_combs(s
 ## Regression
 
 # Get rural data
-rural <- filter(fiji_cleaned, sector == 1)
+fiji_cleaned <- filter(fiji_cleaned, sector == 1)
 
 # Water
 clm_poa <- clm(score2 ~ (sex * rainfallperc) + rural + urban + age, data = fiji_cleaned)
@@ -107,21 +107,21 @@ clm_poa <- clm(score2 ~ sex + rainfallperc + rural + urban + age, data = fiji_cl
 waterclm_noint <- regress_po(fiji_cleaned, "score2", interaction = FALSE)[["ppo_model"]]
 
 # # Health
-clm_poa <- clm(score4 ~ (sex * rainfallperc) + rural + urban + age, data = fiji_cleaned)
+clm_poa <- clm(score4 ~ (sex * rainfallperc) + age, data = fiji_cleaned)
 healthclm <- regress_po(fiji_cleaned, "score4", interaction = TRUE)[["ppo_model"]]
-clm_poa <- clm(score4 ~ sex + rainfallperc + rural + urban + age, data = fiji_cleaned)
+clm_poa <- clm(score4 ~ sex + rainfallperc + age, data = fiji_cleaned)
 healthclm_noint <- regress_po(fiji_cleaned, "score4", interaction = FALSE)[["ppo_model"]]
 
 # # Time use
-clm_poa <- clm(score14 ~ (sex * rainfallperc) + rural + urban + age, data = fiji_cleaned)
+clm_poa <- clm(score14 ~ (sex * rainfallperc) + age, data = fiji_cleaned)
 timeclm <- regress_po(fiji_cleaned, "score14", interaction = TRUE)[["ppo_model"]]
-clm_poa <- clm(score14 ~ sex + rainfallperc + rural + urban + age, data = fiji_cleaned)
+clm_poa <- clm(score14 ~ sex + rainfallperc + age, data = fiji_cleaned)
 timeclm_noint <- regress_po(fiji_cleaned, "score14", interaction = FALSE)[["ppo_model"]]
 
 # # Sanitation
-clm_poa <- clm(score7 ~ (sex * rainfallperc) + rural + urban + age, data = fiji_cleaned)
+clm_poa <- clm(score7 ~ (sex * rainfallperc) + age, data = fiji_cleaned)
 sanitationclm <- regress_po(fiji_cleaned, "score7", interaction = TRUE)[["ppo_model"]]
-clm_poa <- clm(score7 ~ sex + rainfallperc + rural + urban + age, data = fiji_cleaned)
+clm_poa <- clm(score7 ~ sex + rainfallperc + age, data = fiji_cleaned)
 sanitationclm_noint <- regress_po(fiji_cleaned, "score7", interaction = FALSE)[["ppo_model"]]
 
 # 
