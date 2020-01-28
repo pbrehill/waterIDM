@@ -76,30 +76,6 @@ for (i in length(colnames(deprivations)))
 deprivations <- as.data.frame(deprivations)
 deprivations["sector"] <- fiji_cleaned$sector
 
-# Make UpSet
-
-# sets1 <- c("score2", "score4", "score7", "score14")
-# rural <- filter(deprivations, sector == 0)
-# urban <- filter(deprivations, sector == 1)
-# informal <- filter(deprivations, sector == 2)
-# 
-# upplot_rural <- upset(urban, nintersects = NA, intersections = get_combs(sets1, key_set = "score2"),
-#                 order.by = "freq")
-# 
-# upplot_urban <- upset(rural, nintersects = NA, intersections = get_combs(sets1, key_set = "score2"),
-#                       order.by = "freq")
-# 
-# upplot_informal <- upset(informal, nintersects = NA, intersections = get_combs(sets1, key_set = "score2"),
-#                          order.by = "freq")
-
-# upplot_rural
-# upplot_urban
-# upplot_informal
-
-## Regression
-
-# Get rural data
-
 
 # Water
 clm_poa <- clm(score2 ~ (sex * rainfallperc) + age + disability3, data = fiji_cleaned)
@@ -131,37 +107,6 @@ foodclm <- regress_po(fiji_cleaned, "score1", interaction = TRUE)[["ppo_model"]]
 clm_poa <- clm(score1 ~ sex + rainfallperc + age + disability3, data = fiji_cleaned)
 foodclm_noint <- regress_po(fiji_cleaned, "score1", interaction = FALSE)[["ppo_model"]]
 
-# 
-# # Write coefficients to csvs
-# write_coefficients(waterclm, 'water.csv')
-# write_coefficients(waterclm_noint, 'water_noint.csv')
-# 
-# write_coefficients(healthclm, 'health.csv')
-# write_coefficients(healthclm_noint, 'health_noint.csv')
-# 
-# write_coefficients(timeclm, 'time.csv')
-# write_coefficients(timeclm_noint, 'time_noint.csv')
-# 
-# write_coefficients(sanitationclm, 'sanitation.csv')
-# write_coefficients(sanitationclm_noint, 'sanitation_noint.csv')
-# 
-# # HTML table
-# 
-## Define function
-# tables_from_keyword <- function(dimension_keyword) {
-#   print("Reminder: clm models named {{keyword}}clm and {{keyword}}clm_noint must be available.")
-#   eval(parse(text = paste0(dimension_keyword, "_models <- list()")))
-#   # eval(parse(text = paste0(dimension_keyword, "_models[[\'", dimension_keyword, "clm_nocont\']] <- ", dimension_keyword, "clm_nocont")))
-#   eval(parse(text = paste0(dimension_keyword, "_models[[\'", dimension_keyword, "clm_noint\']] <-", dimension_keyword, "clm_noint")))
-#   eval(parse(text = paste0(dimension_keyword, "_models[[\'", dimension_keyword, "clm\']] <- ", dimension_keyword, "clm")))
-#   eval(parse(text = paste0("stargazer_clm(", dimension_keyword, "_models, '", dimension_keyword, "_out.html')")))
-# }
-# # 
-# tables_from_keyword('health')
-# tables_from_keyword('water')
-# tables_from_keyword('time')
-# tables_from_keyword('sanitation')
-
 combn_fewer <- function(x) {
   len <- length(x)
   vec <- vector('character', 0)
@@ -178,27 +123,16 @@ stargazer(vglm_gaze(sanitationclm), vglm_gaze(sanitationclm_noint), type = 'html
 stargazer(vglm_gaze(timeclm), vglm_gaze(timeclm_noint), type = 'html', out ='time.html', summary = FALSE)
 stargazer(vglm_gaze(foodclm), vglm_gaze(foodclm_noint), type = 'html', out ='food.html', summary = FALSE)
 
+# Export interaction plots
+int_plot_list <- list()
+int_plot_list[[1]] <- interaction.ggplot(fiji_cleaned, "score1", foodclm)
+int_plot_list[[2]] <- interaction.ggplot(fiji_cleaned, "score2", waterclm)
+int_plot_list[[3]] <- interaction.ggplot(fiji_cleaned, "score4", healthclm)
+int_plot_list[[4]] <- interaction.ggplot(fiji_cleaned, "score7", sanitationclm)
+int_plot_list[[5]] <- interaction.ggplot(fiji_cleaned, "score14", timeclm)
 
+for (i in 1:length(int_plot_list)) {
+  ggsave(paste0("plot", i, ".png") ,int_plot_list[[i]])
+}
 
-# print("Score 4")
-# clm_poa <- clm(score4 ~ (sex * rainfallperc) + rural + urban + age, data = fiji_cleaned)
-# result4 <- regress_po(fiji_cleaned, "score4")
-# 
-# print("Score 7")
-# clm_poa <- clm(score7 ~ (sex * rainfallperc) + rural + urban + age, data = fiji_cleaned)
-# result7 <- regress_po(fiji_cleaned, "score7")
-# 
-# print("Score 14")
-# clm_poa <- clm(score14 ~ (sex * rainfallperc) + rural + urban + age, data = fiji_cleaned)
-# result14 <- regress_po(fiji_cleaned, "score14")
-
-
-
-# ggplot(data = test_data,
-#        aes(x = rainfallperc, y = Prediction, colour = sex, group=sex)) +
-#   stat_summary(fun.y=mean, geom="point") +
-#   stat_summary(fun.y=mean, geom="line") +
-#   facet_wrap(~Threshold,  ncol=1)
-
-interaction.ggplot()
   
