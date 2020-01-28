@@ -78,19 +78,19 @@ regress_po <- function(data=fiji_cleaned, score , interaction = TRUE) {
   
   if (length(not_validated) == 0) {
     if (interaction) {
-      ppo_expression <- paste0("vglm(eval(parse(text = score)) ~ (sex * rainfallperc) + age, data = data, 
+      ppo_expression <- paste0("vglm(eval(parse(text = score)) ~ (sex * rainfallperc) + age + disability3, data = data, 
                                family=cumulative(parallel=TRUE, reverse = TRUE))")
     } else {
-      ppo_expression <- paste0("vglm(eval(parse(text = score)) ~ sex + rainfallperc + age, data = data, 
+      ppo_expression <- paste0("vglm(eval(parse(text = score)) ~ sex + rainfallperc + age + disability3, data = data, 
                                family=cumulative(parallel=TRUE, reverse = TRUE))")
     }
   } else {
   
     if (interaction) {
-      ppo_expression <- paste0("vglm(eval(parse(text = score)) ~ (sex * rainfallperc) + age, data = data, 
+      ppo_expression <- paste0("vglm(eval(parse(text = score)) ~ (sex * rainfallperc) + age + disability3, data = data, 
                                family=cumulative(parallel=FALSE ~ ", paste(not_validated, collapse = " + "), ",reverse = TRUE))")
     } else {
-      ppo_expression <- paste0("vglm(eval(parse(text = score)) ~ sex + rainfallperc + age, data = data, 
+      ppo_expression <- paste0("vglm(eval(parse(text = score)) ~ sex + rainfallperc + age + disability3, data = data, 
                                family=cumulative(parallel=FALSE ~ ", paste(not_validated, collapse = " + "), ",reverse = TRUE))")
     }
   }

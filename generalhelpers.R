@@ -237,3 +237,33 @@ vglm_gaze <- function (model, output_file) {
   colnames(restable) <- c("Estimate", "Pr(>|z|)", "Sig")
   return(restable)
 }
+
+interaction.ggplot <- function (test_data, score, clm) {
+  eval(parse(text=paste0("fiji_cleaned %>% select(sex, rainfallperc, age, disability3,", score , ")"))) %>%
+    na.omit() -> test_data
+  
+  test_data$sex <- as.character(test_data$sex) %>%
+    str_replace("1", "Male") %>%
+    str_replace("2", "Female")
+  
+  preds <- as.data.frame(predictvglm(clm))
+  test_data <- bind_cols(preds, as.data.frame(test_data)) %>%
+    gather(key = "Threshold",
+           value = "Prediction",
+           `logitlink(P[Y>=2])`,
+           `logitlink(P[Y>=3])`,
+           `logitlink(P[Y>=4])`)
+  
+  int_plot <- ggplot(data = test_data,
+         aes(x = rainfallperc, y = Prediction, colour = sex, group=sex)) +
+    stat_summary(fun.y=mean, geom="point") +
+    stat_summary(fun.y=mean, geom="line") +
+    facet_wrap(~Threshold,  ncol=1) +
+    ggtitle(paste0(score, " interaction plots")) +
+    theme_bw()
+  
+  return(int_plot)
+}
+
+interaction.ggplot(fiji_cleaned, "score2", waterclm)
+interaction.ggplot(fiji_cleaned, "score7", sanitationclm)

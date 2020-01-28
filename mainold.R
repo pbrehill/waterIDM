@@ -15,6 +15,7 @@ source('regressions.R')
 # Import data
 rdsname <- "fiji_newscored_cleaned_Oct19.rds"
 fiji_cleaned <- import.clean(rdsname)
+fiji_cleaned <- filter(fiji_cleaned, sector == 0)
 
 ## Descriptive statistics
 freq_table <- apply(fiji_cleaned[c("score2", "score4", "score7", "score14")], 2, table)
@@ -77,19 +78,19 @@ deprivations["sector"] <- fiji_cleaned$sector
 
 # Make UpSet
 
-sets1 <- c("score2", "score4", "score7", "score14")
-rural <- filter(deprivations, sector == 0)
-urban <- filter(deprivations, sector == 1)
-informal <- filter(deprivations, sector == 2)
-
-upplot_rural <- upset(urban, nintersects = NA, intersections = get_combs(sets1, key_set = "score2"),
-                order.by = "freq")
-
-upplot_urban <- upset(rural, nintersects = NA, intersections = get_combs(sets1, key_set = "score2"),
-                      order.by = "freq")
-
-upplot_informal <- upset(informal, nintersects = NA, intersections = get_combs(sets1, key_set = "score2"),
-                         order.by = "freq")
+# sets1 <- c("score2", "score4", "score7", "score14")
+# rural <- filter(deprivations, sector == 0)
+# urban <- filter(deprivations, sector == 1)
+# informal <- filter(deprivations, sector == 2)
+# 
+# upplot_rural <- upset(urban, nintersects = NA, intersections = get_combs(sets1, key_set = "score2"),
+#                 order.by = "freq")
+# 
+# upplot_urban <- upset(rural, nintersects = NA, intersections = get_combs(sets1, key_set = "score2"),
+#                       order.by = "freq")
+# 
+# upplot_informal <- upset(informal, nintersects = NA, intersections = get_combs(sets1, key_set = "score2"),
+#                          order.by = "freq")
 
 # upplot_rural
 # upplot_urban
@@ -98,31 +99,37 @@ upplot_informal <- upset(informal, nintersects = NA, intersections = get_combs(s
 ## Regression
 
 # Get rural data
-fiji_cleaned <- filter(fiji_cleaned, sector == 1)
+
 
 # Water
-clm_poa <- clm(score2 ~ (sex * rainfallperc) + rural + urban + age, data = fiji_cleaned)
+clm_poa <- clm(score2 ~ (sex * rainfallperc) + age + disability3, data = fiji_cleaned)
 waterclm <- regress_po(fiji_cleaned, "score2", interaction = TRUE)[["ppo_model"]]
-clm_poa <- clm(score2 ~ sex + rainfallperc + rural + urban + age, data = fiji_cleaned)
+clm_poa <- clm(score2 ~ sex + rainfallperc + age+ disability3, data = fiji_cleaned)
 waterclm_noint <- regress_po(fiji_cleaned, "score2", interaction = FALSE)[["ppo_model"]]
 
 # # Health
-clm_poa <- clm(score4 ~ (sex * rainfallperc) + age, data = fiji_cleaned)
+clm_poa <- clm(score4 ~ (sex * rainfallperc) + age+ disability3, data = fiji_cleaned)
 healthclm <- regress_po(fiji_cleaned, "score4", interaction = TRUE)[["ppo_model"]]
-clm_poa <- clm(score4 ~ sex + rainfallperc + age, data = fiji_cleaned)
+clm_poa <- clm(score4 ~ sex + rainfallperc + age+ disability3, data = fiji_cleaned)
 healthclm_noint <- regress_po(fiji_cleaned, "score4", interaction = FALSE)[["ppo_model"]]
 
 # # Time use
-clm_poa <- clm(score14 ~ (sex * rainfallperc) + age, data = fiji_cleaned)
+clm_poa <- clm(score14 ~ (sex * rainfallperc) + age + disability3, data = fiji_cleaned)
 timeclm <- regress_po(fiji_cleaned, "score14", interaction = TRUE)[["ppo_model"]]
-clm_poa <- clm(score14 ~ sex + rainfallperc + age, data = fiji_cleaned)
+clm_poa <- clm(score14 ~ sex + rainfallperc + age + disability3, data = fiji_cleaned)
 timeclm_noint <- regress_po(fiji_cleaned, "score14", interaction = FALSE)[["ppo_model"]]
 
 # # Sanitation
-clm_poa <- clm(score7 ~ (sex * rainfallperc) + age, data = fiji_cleaned)
+clm_poa <- clm(score7 ~ (sex * rainfallperc) + age + disability3, data = fiji_cleaned)
 sanitationclm <- regress_po(fiji_cleaned, "score7", interaction = TRUE)[["ppo_model"]]
-clm_poa <- clm(score7 ~ sex + rainfallperc + age, data = fiji_cleaned)
+clm_poa <- clm(score7 ~ sex + rainfallperc + age + disability3, data = fiji_cleaned)
 sanitationclm_noint <- regress_po(fiji_cleaned, "score7", interaction = FALSE)[["ppo_model"]]
+
+# # Food
+clm_poa <- clm(score1 ~ (sex * rainfallperc) + age + disability3, data = fiji_cleaned)
+foodclm <- regress_po(fiji_cleaned, "score1", interaction = TRUE)[["ppo_model"]]
+clm_poa <- clm(score1 ~ sex + rainfallperc + age + disability3, data = fiji_cleaned)
+foodclm_noint <- regress_po(fiji_cleaned, "score1", interaction = FALSE)[["ppo_model"]]
 
 # 
 # # Write coefficients to csvs
@@ -169,6 +176,8 @@ stargazer(vglm_gaze(waterclm), vglm_gaze(waterclm_noint), type = 'html', out ='w
 stargazer(vglm_gaze(healthclm), vglm_gaze(healthclm_noint), type = 'html', out ='health.html', summary = FALSE)
 stargazer(vglm_gaze(sanitationclm), vglm_gaze(sanitationclm_noint), type = 'html', out ='sanitation.html', summary = FALSE)
 stargazer(vglm_gaze(timeclm), vglm_gaze(timeclm_noint), type = 'html', out ='time.html', summary = FALSE)
+stargazer(vglm_gaze(foodclm), vglm_gaze(foodclm_noint), type = 'html', out ='food.html', summary = FALSE)
+
 
 
 # print("Score 4")
@@ -182,3 +191,14 @@ stargazer(vglm_gaze(timeclm), vglm_gaze(timeclm_noint), type = 'html', out ='tim
 # print("Score 14")
 # clm_poa <- clm(score14 ~ (sex * rainfallperc) + rural + urban + age, data = fiji_cleaned)
 # result14 <- regress_po(fiji_cleaned, "score14")
+
+
+
+# ggplot(data = test_data,
+#        aes(x = rainfallperc, y = Prediction, colour = sex, group=sex)) +
+#   stat_summary(fun.y=mean, geom="point") +
+#   stat_summary(fun.y=mean, geom="line") +
+#   facet_wrap(~Threshold,  ncol=1)
+
+interaction.ggplot()
+  
