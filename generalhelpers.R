@@ -249,13 +249,13 @@ interaction.ggplot <- function (test_data, score, clm) {
   preds <- as.data.frame(predictvglm(clm))
   test_data <- bind_cols(preds, as.data.frame(test_data)) %>%
     gather(key = "Threshold",
-           value = "Prediction",
+           value = "Logit",
            `logitlink(P[Y>=2])`,
            `logitlink(P[Y>=3])`,
            `logitlink(P[Y>=4])`)
   
   int_plot <- ggplot(data = test_data,
-         aes(x = rainfallperc, y = Prediction, colour = sex, group=sex)) +
+         aes(x = rainfallperc, y = Logit, linetype = sex, group=sex)) +
     stat_summary(fun.y=mean, geom="point") +
     stat_summary(fun.y=mean, geom="line") +
     facet_wrap(~Threshold,  ncol=1) +
@@ -264,6 +264,3 @@ interaction.ggplot <- function (test_data, score, clm) {
   
   return(int_plot)
 }
-
-interaction.ggplot(fiji_cleaned, "score2", waterclm)
-interaction.ggplot(fiji_cleaned, "score7", sanitationclm)

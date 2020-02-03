@@ -1,6 +1,7 @@
 library(tidyverse)
 library(ordinal)
 library(UpSetR)
+library(gmodels)
 library(gridExtra)
 library(lubridate)
 library(stargazer)
@@ -23,6 +24,21 @@ freq_table <- apply(fiji_cleaned[c("score2", "score4", "score7", "score14")], 2,
 #           summary = FALSE)
 # base::summary(fiji_cleaned)
 
+# Age brackets
+fiji_cleaned[["brackets"]] <- cut(fiji_cleaned$age, breaks=c(17, 36, 51, 66, 200), right = FALSE)
+CrossTable(fiji_cleaned$brackets, fiji_cleaned$sex, prop.r = FALSE, prop.t = FALSE, prop.chisq = FALSE)
+
+# Ethnicities
+CrossTable(fiji_cleaned$ethnicity, fiji_cleaned$sex, prop.r = FALSE, prop.t = FALSE, prop.chisq = FALSE)
+
+# Relationship to respondent
+CrossTable(fiji_cleaned$relationship, fiji_cleaned$sex, prop.r = FALSE, prop.t = FALSE, prop.chisq = FALSE)
+
+# Disability
+CrossTable(fiji_cleaned$disability3, fiji_cleaned$sex, prop.r = FALSE, prop.t = FALSE, prop.chisq = FALSE)
+
+
+# Graph dimensions
 graph_dimensions <- function (data, title, ncol = 2) {
   require("gridExtra")
   # Make graphs
@@ -40,42 +56,19 @@ graph_dimensions <- function (data, title, ncol = 2) {
   return(graph_grid)
 }
 
-desc_graphs <- graph_dimensions(fiji_cleaned[c("score2", "score4", "score7", "score14")], 
+desc_graphs <- graph_dimensions(fiji_cleaned[c("score1", "score2", "score4", "score7", "score14")], 
                                 'Distribution of responses in the dimensions studied', 2)
 
 ## Spearman correlation
+## Spearman correlation
 corr_table <-fiji_cleaned[c(paste0('score', 1:9), paste0('score', 12:15), 
-                                   'rainfallperc', 'rainfallobs', 'urban', 'rural', 'informal', 'sex')] %>%
+                            'rainfallperc', 'rainfallobs', 'urban', 'rural', 'informal', 'sex', 'score15.1.1')] %>%
   sapply( as.numeric ) %>%
   cor(use = 'pairwise.complete.obs', method = 'spearman') %>%
   round(2)
 
+
 write.csv(corr_table, 'spearmans.csv')
-  
-# # Get deprivations df
-# deprivations_corr <- fiji_cleaned %>%
-#   ungroup() %>%
-#   select(score1, score2, score3, score4, score5, score6, score7, score8, score9,
-#          score12, score13, score14, score15, sex, urban, rural, age) %>%
-#   sapply(as.numeric) %>%
-#   cor(use = 'pairwise.complete.obs', method = 'spearman')
-# 
-# # Write output
-# write.csv(deprivations_corr, 'spearman_output.csv')
-
-deprivations <- fiji_cleaned %>%
-  ungroup() %>%
-  select(score1, score2, score3, score4, score5, score6, score7, score8, score9,
-         score12, score13, score14, score15) %>%
-  sapply(as.numeric)
-
-deprivations <- deprivations < 2
-for (i in length(colnames(deprivations)))
-  deprivations[i] <- as.numeric(deprivations[i])
-
-deprivations <- as.data.frame(deprivations)
-deprivations["sector"] <- fiji_cleaned$sector
-
 
 # Water
 clm_poa <- clm(score2 ~ (sex * rainfallperc) + age + disability3, data = fiji_cleaned)
@@ -135,4 +128,12 @@ for (i in 1:length(int_plot_list)) {
   ggsave(paste0("plot", i, ".png") ,int_plot_list[[i]])
 }
 
+fiji_cleaned %>%
+  group_by(tikina) %>%
+  summarise(rainfall = mean(rainfallperc), score4 = mean(as.numeric(score4), na.rm = TRUE))
+
+fiji_cleaned %>%
+  filter(tikina == '13') %>%
+  select %>%
+  View()
   
