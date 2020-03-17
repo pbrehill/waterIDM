@@ -10,19 +10,13 @@ source('importclean.R')
 source('generalhelpers.R')
 source('regressions.R')
 
-### Note due to a bug, this script sometimes throws a "subscript out of bounds" error when
-### calculating Type III ANOVA. Restarting the R session should resolve this issue.
-
 # Import data
 rdsname <- "fiji_newscored_cleaned_Oct19.rds"
 fiji_cleaned <- import.clean(rdsname)
 fiji_cleaned <- filter(fiji_cleaned, sector == 0)
 
-## Descriptive statistics
+# Descriptive statistics
 freq_table <- apply(fiji_cleaned[c("score2", "score4", "score7", "score14")], 2, table)
-# stargazer(freq_table, type = 'html', title = 'Frequency table for dimension scores', out = 'freqs.html',
-#           summary = FALSE)
-# base::summary(fiji_cleaned)
 
 # Age brackets
 fiji_cleaned[["brackets"]] <- cut(fiji_cleaned$age, breaks=c(17, 36, 51, 66, 200), right = FALSE)
@@ -59,7 +53,6 @@ graph_dimensions <- function (data, title, ncol = 2) {
 desc_graphs <- graph_dimensions(fiji_cleaned[c("score1", "score2", "score4", "score7", "score14")], 
                                 'Distribution of responses in the dimensions studied', 2)
 
-## Spearman correlation
 ## Spearman correlation
 corr_table <-fiji_cleaned[c(paste0('score', 1:9), paste0('score', 12:15), 
                             'rainfallperc', 'rainfallobs', 'urban', 'rural', 'informal', 'sex', 'score15.1.1')] %>%
@@ -127,13 +120,3 @@ int_plot_list[[5]] <- interaction.ggplot(fiji_cleaned, "score14", timeclm)
 for (i in 1:length(int_plot_list)) {
   ggsave(paste0("plot", i, ".png") ,int_plot_list[[i]])
 }
-
-fiji_cleaned %>%
-  group_by(tikina) %>%
-  summarise(rainfall = mean(rainfallperc), score4 = mean(as.numeric(score4), na.rm = TRUE))
-
-fiji_cleaned %>%
-  filter(tikina == '13') %>%
-  select %>%
-  View()
-  
