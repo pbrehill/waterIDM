@@ -1,2 +1,2 @@
 # waterIDM
-R repo for scripts used in my research paper on water deprivation in the IDM.
+R repo for scripts used in my research paper on drought and its effect on the IDM.
